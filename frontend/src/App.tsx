@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import EventConfirmation from './components/EventConfirmation'
 
 interface Event {
   id: string;
@@ -8,6 +7,7 @@ interface Event {
   end: string;
   description?: string;
   location?: string;
+  summary?: string; // For Google Calendar events
 }
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
         const data = await response.json();
         setEvents(data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching events:', error);
     }
   };
@@ -112,7 +112,7 @@ function App() {
         const errorData = await response.text();
         console.error('Response error:', errorData);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing text:', error);
       if (error.name === 'AbortError') {
         console.error('Request timed out after 30 seconds');
@@ -140,15 +140,11 @@ function App() {
         setPendingEvent(null);
         fetchEvents(); // Refresh events
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating event:', error);
     }
   };
 
-  const handleCancelEvent = () => {
-    setShowConfirmation(false);
-    setPendingEvent(null);
-  };
 
   if (!isAuthenticated) {
     return (
@@ -379,9 +375,9 @@ function App() {
                     borderRadius: '0.5rem',
                     border: '1px solid #e5e7eb'
                   }}>
-                    <h3 style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>{event.summary}</h3>
+                    <h3 style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>{event.title || event.summary}</h3>
                     <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.25rem' }}>
-                      {new Date(event.start?.dateTime || event.start?.date).toLocaleString()}
+                      {new Date(event.start).toLocaleString()}
                     </p>
                     {event.location && (
                       <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
@@ -486,7 +482,7 @@ function App() {
                               <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#b91c1c', marginBottom: '0.5rem' }}>Conflicts with:</div>
                               {pendingEvent.availability.conflicts.map((conflict: any, index: number) => (
                                 <div key={index} style={{ fontSize: '0.875rem', color: '#dc2626', backgroundColor: 'white', borderRadius: '0.25rem', padding: '0.5rem', marginBottom: '0.25rem' }}>
-                                  • {conflict.summary} ({new Date(conflict.start?.dateTime || conflict.start?.date).toLocaleString()})
+                                  • {conflict.title || conflict.summary || 'Untitled Event'} ({new Date(conflict.start?.dateTime || conflict.start?.date || conflict.start).toLocaleString()})
                                 </div>
                               ))}
                             </div>
