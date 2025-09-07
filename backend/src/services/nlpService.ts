@@ -118,8 +118,23 @@ Now parse: "${text}"`;
 const createSmartFallback = (text: string) => {
   console.log('Creating smart fallback for text:', text);
   
-  const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  try {
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    // Validate base dates
+    if (isNaN(now.getTime()) || isNaN(tomorrow.getTime())) {
+      console.log('Invalid base dates, using current time');
+      const fallbackNow = new Date();
+      const fallbackTomorrow = new Date(fallbackNow.getTime() + 24 * 60 * 60 * 1000);
+      return {
+        title: 'Event',
+        start: fallbackNow.toISOString(),
+        end: fallbackTomorrow.toISOString(),
+        location: 'TBD',
+        description: text
+      };
+    }
   
   // Extract title from text - multiple patterns
   let title = 'Event';
@@ -200,6 +215,13 @@ const createSmartFallback = (text: string) => {
   
   // Determine time - improved regex with multiple patterns
   let eventTime = new Date(eventDate);
+  
+  // Validate the base date first
+  if (isNaN(eventTime.getTime())) {
+    console.log('Invalid base date, using current time');
+    eventTime = new Date();
+  }
+  
   eventTime.setHours(14, 0, 0, 0); // Default to 2pm
   
   const timePatterns = [
@@ -216,24 +238,68 @@ const createSmartFallback = (text: string) => {
       const minutes = match[2] ? parseInt(match[2]) : 0;
       const ampm = match[3]?.toLowerCase();
       
+      // Validate hours and minutes
+      if (isNaN(hours) || hours < 0 || hours > 23) {
+        console.log('Invalid hours, skipping time pattern');
+        continue;
+      }
+      if (isNaN(minutes) || minutes < 0 || minutes > 59) {
+        console.log('Invalid minutes, skipping time pattern');
+        continue;
+      }
+      
       if (ampm === 'pm' && hours !== 12) hours += 12;
       if (ampm === 'am' && hours === 12) hours = 0;
+      
+      // Validate final hours
+      if (hours < 0 || hours > 23) {
+        console.log('Invalid final hours, skipping time pattern');
+        continue;
+      }
       
       eventTime.setHours(hours, minutes, 0, 0);
       break;
     }
   }
   
+  // Validate the final event time
+  if (isNaN(eventTime.getTime())) {
+    console.log('Invalid event time, using current time + 1 hour');
+    eventTime = new Date();
+    eventTime.setHours(eventTime.getHours() + 1, 0, 0, 0);
+  }
+  
   const endTime = new Date(eventTime.getTime() + durationHours * 60 * 60 * 1000);
   
-  const result = {
-    title: title,
-    start: eventTime.toISOString(),
-    end: endTime.toISOString(),
-    location: location,
-    description: text
-  };
+  // Validate the end time
+  if (isNaN(endTime.getTime())) {
+    console.log('Invalid end time, using event time + 1 hour');
+    endTime.setTime(eventTime.getTime() + 60 * 60 * 1000);
+  }
   
-  console.log('Smart fallback result:', result);
-  return result;
+    const result = {
+      title: title,
+      start: eventTime.toISOString(),
+      end: endTime.toISOString(),
+      location: location,
+      description: text
+    };
+    
+    console.log('Smart fallback result:', result);
+    return result;
+    
+  } catch (error) {
+    console.error('Error in createSmartFallback:', error);
+    // Ultimate fallback - return a safe default
+    const safeDate = new Date();
+    const safeEndDate = new Date(safeDate.getTime() + 60 * 60 * 1000); // 1 hour later
+    
+    return {
+      title: 'Event',
+      start: safeDate.toISOString(),
+      end: safeEndDate.toISOString(),
+      location: 'TBD',
+      description: text
+    };
+  }
 };
