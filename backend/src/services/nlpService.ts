@@ -1,6 +1,7 @@
 import { Ollama } from 'ollama';
 
-const ollama = new Ollama({ host: 'http://localhost:11434' });
+// Only initialize Ollama if not in production (Railway doesn't have Ollama)
+const ollama = process.env.NODE_ENV === 'production' ? null : new Ollama({ host: 'http://localhost:11434' });
 
 export const processTextToEvent = async (text: string) => {
   const prompt = `You are a calendar event parser. Convert this text to JSON only:
@@ -26,6 +27,12 @@ Output: {"title": "Meeting", "start": "2025-09-07T15:00:00.000Z", "end": "2025-0
 Now parse: "${text}"`;
 
   try {
+    // If Ollama is not available (production), use smart fallback
+    if (!ollama) {
+      console.log('Ollama not available, using smart fallback...');
+      return createSmartFallback(text);
+    }
+
     console.log('Sending request to Ollama...');
     const response = await ollama.generate({
       model: 'llama3',
