@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     console.log('AuthCallback: Processing OAuth callback...');
@@ -17,18 +18,26 @@ export default function AuthCallback() {
       hash: window.location.hash
     }));
     
-    // Parse token from hash URL (e.g., #/auth/callback?token=...)
-    const hash = window.location.hash;
-    console.log('AuthCallback: Full hash:', hash);
+    // Parse token from React Router location
+    console.log('AuthCallback: React Router location:', location);
+    console.log('AuthCallback: Location search:', location.search);
+    console.log('AuthCallback: Location hash:', location.hash);
     
-    const hashParts = hash.split('?');
-    console.log('AuthCallback: Hash parts:', hashParts);
+    // Try both React Router location.search and window.location.hash
+    const searchParams = new URLSearchParams(location.search);
+    const tokenFromSearch = searchParams.get('token');
     
+    // Also try parsing from window.location.hash as fallback
+    const windowHash = window.location.hash;
+    console.log('AuthCallback: Window hash:', windowHash);
+    
+    const hashParts = windowHash.split('?');
     const queryString = hashParts[1] || '';
-    console.log('AuthCallback: Query string:', queryString);
-    
     const hashParams = new URLSearchParams(queryString);
-    const token = hashParams.get('token');
+    const tokenFromHash = hashParams.get('token');
+    
+    // Use whichever token we found
+    const token = tokenFromSearch || tokenFromHash;
     
     console.log('AuthCallback: Token from URL:', token);
     console.log('AuthCallback: Token length:', token ? token.length : 0);
@@ -36,9 +45,15 @@ export default function AuthCallback() {
     // Store detailed parsing debug info
     localStorage.setItem('token_parsing_debug', JSON.stringify({
       timestamp: new Date().toISOString(),
-      fullHash: hash,
+      reactRouterLocation: location,
+      reactRouterSearch: location.search,
+      reactRouterHash: location.hash,
+      windowHash: windowHash,
       hashParts: hashParts,
       queryString: queryString,
+      tokenFromSearch: tokenFromSearch,
+      tokenFromHash: tokenFromHash,
+      finalToken: token,
       tokenFound: !!token,
       tokenLength: token ? token.length : 0
     }));

@@ -299,9 +299,14 @@ function App() {
               {parsedTokenParsing && (
                 <>
                   <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>Token Parsing:</div>
-                  <div>Full Hash: {parsedTokenParsing.fullHash}</div>
+                  <div>React Router Search: {parsedTokenParsing.reactRouterSearch}</div>
+                  <div>React Router Hash: {parsedTokenParsing.reactRouterHash}</div>
+                  <div>Window Hash: {parsedTokenParsing.windowHash}</div>
                   <div>Hash Parts: {JSON.stringify(parsedTokenParsing.hashParts)}</div>
                   <div>Query String: {parsedTokenParsing.queryString}</div>
+                  <div>Token From Search: {parsedTokenParsing.tokenFromSearch ? 'Found' : 'Not Found'}</div>
+                  <div>Token From Hash: {parsedTokenParsing.tokenFromHash ? 'Found' : 'Not Found'}</div>
+                  <div>Final Token: {parsedTokenParsing.finalToken ? 'Found' : 'Not Found'}</div>
                   <div>Token Found: {parsedTokenParsing.tokenFound ? 'Yes' : 'No'}</div>
                   <div>Token Length: {parsedTokenParsing.tokenLength}</div>
                   <div>Time: {parsedTokenParsing.timestamp}</div>
