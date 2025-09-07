@@ -19,7 +19,7 @@ function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const API_BASE_URL = import.meta.env.PROD 
-    ? 'https://your-railway-url.railway.app/api'  // Replace with your actual Railway URL
+    ? 'https://calendar-project-production.up.railway.app/api'
     : 'http://localhost:3001/api';
   
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
