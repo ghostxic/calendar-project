@@ -1,6 +1,7 @@
 import express from 'express';
 import { google } from 'googleapis';
 import { processTextToEvent } from '../services/nlpService';
+import { checkAvailability } from '../services/availabilityService';
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ router.get('/', authenticateToken, async (req, res) => {
     });
 
     res.json(response.data.items || []);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching events:', error);
     res.status(500).json({ error: 'Failed to fetch events' });
   }
@@ -54,7 +55,15 @@ router.post('/', authenticateToken, async (req, res) => {
     const user = (req as any).user;
     const { title, start, end, description, location } = req.body;
 
-    const oauth2Client = new google.auth.OAuth2();
+    console.log('Creating event with data:', { title, start, end, description, location });
+    console.log('User tokens:', { accessToken: user.accessToken ? 'present' : 'missing', refreshToken: user.refreshToken ? 'present' : 'missing' });
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    
     oauth2Client.setCredentials({
       access_token: user.accessToken,
       refresh_token: user.refreshToken
@@ -76,25 +85,62 @@ router.post('/', authenticateToken, async (req, res) => {
       },
     };
 
+    console.log('Sending event to Google Calendar:', event);
     const response = await calendar.events.insert({
       calendarId: 'primary',
-      resource: event,
+      requestBody: event,
     });
 
+    console.log('Event created successfully:', response.data);
     res.json(response.data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating event:', error);
-    res.status(500).json({ error: 'Failed to create event' });
+    console.error('Error details:', error.message);
+    if (error.response) {
+      console.error('Google API error response:', error.response.data);
+    }
+    res.status(500).json({ 
+      error: 'Failed to create event',
+      details: error.message,
+      googleError: error.response?.data
+    });
   }
 });
 
 // Process natural language input
 router.post('/process', authenticateToken, async (req, res) => {
   try {
+    console.log('Processing text request:', req.body);
     const { text } = req.body;
+    console.log('Text to process:', text);
+    
     const eventData = await processTextToEvent(text);
-    res.json({ event: eventData, confidence: 0.8 });
-  } catch (error) {
+    console.log('Event data processed:', eventData);
+    
+    // Check availability
+    const user = (req as any).user;
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    
+    oauth2Client.setCredentials({
+      access_token: user.accessToken,
+      refresh_token: user.refreshToken
+    });
+    
+    const availability = await checkAvailability(oauth2Client, eventData.start, eventData.end);
+    console.log('Availability check:', availability);
+    
+    const response = { 
+      event: eventData, 
+      confidence: 0.8,
+      availability: availability
+    };
+    console.log('Sending response:', response);
+    res.json(response);
+  } catch (error: any) {
     console.error('Error processing text:', error);
     res.status(500).json({ error: 'Failed to process text' });
   }

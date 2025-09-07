@@ -3,51 +3,133 @@ import { Ollama } from 'ollama';
 const ollama = new Ollama({ host: 'http://localhost:11434' });
 
 export const processTextToEvent = async (text: string) => {
-  const prompt = `
-    Convert this natural language text into a calendar event:
-    "${text}"
-    
-    Return a JSON object with:
-    - title: Event title
-    - start: Start time (ISO string)
-    - end: End time (ISO string)
-    - location: Location if mentioned
-    - description: Description
-    
-    If no specific time is mentioned, suggest tomorrow at 2pm.
-    If no duration is mentioned, assume 1 hour.
-    
-    Examples:
-    - "Gym session, 2 hours, arc gym location" -> {"title": "Gym Session", "start": "2024-09-08T10:00:00.000Z", "end": "2024-09-08T12:00:00.000Z", "location": "Arc Gym", "description": "Gym session"}
-    - "Meeting tomorrow at 2pm" -> {"title": "Meeting", "start": "2024-09-08T14:00:00.000Z", "end": "2024-09-08T15:00:00.000Z", "location": "TBD", "description": "Meeting"}
-  `;
+  const prompt = `You are a calendar event parser. Convert this text to JSON only:
+
+"${text}"
+
+Rules:
+- Return ONLY valid JSON, no explanations
+- Use tomorrow's date if "tomorrow" is mentioned
+- Use today's date if "today" is mentioned  
+- Default to 2pm if no time specified
+- Default to 1 hour duration if not specified
+- Extract location from text
+- Use proper ISO date format
+
+Examples:
+Input: "gym session tomorrow for 2 hours at the arc gym"
+Output: {"title": "Gym Session", "start": "2025-09-08T14:00:00.000Z", "end": "2025-09-08T16:00:00.000Z", "location": "Arc Gym", "description": "Gym session"}
+
+Input: "meeting at 3pm today"
+Output: {"title": "Meeting", "start": "2025-09-07T15:00:00.000Z", "end": "2025-09-07T16:00:00.000Z", "location": "TBD", "description": "Meeting"}
+
+Now parse: "${text}"`;
 
   try {
+    console.log('Sending request to Ollama...');
     const response = await ollama.generate({
       model: 'llama3',
       prompt: prompt,
       stream: false
     });
 
+    console.log('Ollama response received:', response.response);
+    
     // Try to extract JSON from response
-    const responseText = response.response;
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    const responseText = response.response.trim();
+    
+    // Look for JSON in various formats
+    let jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      // Try to find JSON after "Output:" or similar
+      jsonMatch = responseText.match(/Output:\s*(\{[\s\S]*\})/);
+      if (jsonMatch) jsonMatch = [jsonMatch[1]];
+    }
     
     if (jsonMatch) {
-      const eventData = JSON.parse(jsonMatch[0]);
-      return eventData;
+      try {
+        const eventData = JSON.parse(jsonMatch[0]);
+        console.log('Parsed event data:', eventData);
+        
+        // Validate required fields
+        if (!eventData.title || !eventData.start || !eventData.end) {
+          throw new Error('Missing required fields');
+        }
+        
+        return eventData;
+      } catch (parseError) {
+        console.log('JSON parse error:', parseError);
+        throw new Error('Invalid JSON format');
+      }
     } else {
+      console.log('No JSON found in response, using fallback');
       throw new Error('No JSON found in response');
     }
   } catch (error) {
     console.error('Ollama processing error:', error);
-    // Fallback if JSON parsing fails
-    return {
-      title: 'Meeting',
-      start: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      end: new Date(Date.now() + 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
-      location: 'TBD',
-      description: text
-    };
+    // Smart fallback - try to extract basic info from the original text
+    const fallbackData = createSmartFallback(text);
+    console.log('Using smart fallback data:', fallbackData);
+    return fallbackData;
   }
+};
+
+const createSmartFallback = (text: string) => {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  
+  // Extract title from text
+  let title = 'Event';
+  const titleMatch = text.match(/(?:^|\s)([a-zA-Z\s]+?)(?:\s+(?:for|at|tomorrow|today|hours?|minutes?|pm|am)|\s+\d+|\s+hours?|\s+minutes?|$)/i);
+  if (titleMatch) {
+    title = titleMatch[1].trim();
+    // Capitalize first letter of each word
+    title = title.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
+  
+  // Extract duration
+  let durationHours = 1;
+  const durationMatch = text.match(/(\d+)\s*(?:hours?|hrs?)/i);
+  if (durationMatch) {
+    durationHours = parseInt(durationMatch[1]);
+  }
+  
+  // Extract location
+  let location = 'TBD';
+  const locationMatch = text.match(/(?:at|@)\s+([a-zA-Z\s]+?)(?:\s|$)/i);
+  if (locationMatch) {
+    location = locationMatch[1].trim();
+  }
+  
+  // Determine date
+  let eventDate = tomorrow;
+  if (text.toLowerCase().includes('today')) {
+    eventDate = now;
+  }
+  
+  // Determine time
+  let eventTime = new Date(eventDate);
+  eventTime.setHours(14, 0, 0, 0); // Default to 2pm
+  
+  const timeMatch = text.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
+  if (timeMatch) {
+    let hours = parseInt(timeMatch[1]);
+    const minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+    const ampm = timeMatch[3]?.toLowerCase();
+    
+    if (ampm === 'pm' && hours !== 12) hours += 12;
+    if (ampm === 'am' && hours === 12) hours = 0;
+    
+    eventTime.setHours(hours, minutes, 0, 0);
+  }
+  
+  const endTime = new Date(eventTime.getTime() + durationHours * 60 * 60 * 1000);
+  
+  return {
+    title: title,
+    start: eventTime.toISOString(),
+    end: endTime.toISOString(),
+    location: location,
+    description: text
+  };
 };

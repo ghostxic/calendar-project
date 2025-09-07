@@ -4,15 +4,15 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// Google OAuth configuration
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
-);
-
 // Generate Google OAuth URL
 router.get('/google', (req, res) => {
+  // Create OAuth2 client dynamically to ensure env vars are loaded
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+
   const scopes = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -36,6 +36,13 @@ router.get('/google/callback', async (req, res) => {
     if (!code) {
       return res.status(400).json({ error: 'Authorization code not provided' });
     }
+
+    // Create OAuth2 client dynamically
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
 
     // Exchange code for tokens
     const { tokens } = await oauth2Client.getToken(code as string);
