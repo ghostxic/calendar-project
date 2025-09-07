@@ -214,6 +214,9 @@ function App() {
     const tokenStorageInfo = localStorage.getItem('token_storage_debug');
     const parsedTokenStorage = tokenStorageInfo ? JSON.parse(tokenStorageInfo) : null;
     
+    const tokenParsingInfo = localStorage.getItem('token_parsing_debug');
+    const parsedTokenParsing = tokenParsingInfo ? JSON.parse(tokenParsingInfo) : null;
+    
     return (
       <div style={{ 
         height: '100vh', 
@@ -257,7 +260,7 @@ function App() {
           </p>
           
           {/* Debug Info */}
-          {(parsedDebug || parsedAuthCallback || parsedTokenStorage) && (
+          {(parsedDebug || parsedAuthCallback || parsedTokenStorage || parsedTokenParsing) && (
             <div style={{
               backgroundColor: '#f3f4f6',
               borderRadius: '0.5rem',
@@ -291,6 +294,17 @@ function App() {
                   <div>Stored Successfully: {parsedTokenStorage.storedSuccessfully ? 'Yes' : 'No'}</div>
                   <div>Stored Token Length: {parsedTokenStorage.storedTokenLength}</div>
                   <div>Time: {parsedTokenStorage.timestamp}</div>
+                </>
+              )}
+              {parsedTokenParsing && (
+                <>
+                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>Token Parsing:</div>
+                  <div>Full Hash: {parsedTokenParsing.fullHash}</div>
+                  <div>Hash Parts: {JSON.stringify(parsedTokenParsing.hashParts)}</div>
+                  <div>Query String: {parsedTokenParsing.queryString}</div>
+                  <div>Token Found: {parsedTokenParsing.tokenFound ? 'Yes' : 'No'}</div>
+                  <div>Token Length: {parsedTokenParsing.tokenLength}</div>
+                  <div>Time: {parsedTokenParsing.timestamp}</div>
                 </>
               )}
             </div>

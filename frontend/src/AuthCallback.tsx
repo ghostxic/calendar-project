@@ -19,10 +19,29 @@ export default function AuthCallback() {
     
     // Parse token from hash URL (e.g., #/auth/callback?token=...)
     const hash = window.location.hash;
-    const hashParams = new URLSearchParams(hash.split('?')[1] || '');
+    console.log('AuthCallback: Full hash:', hash);
+    
+    const hashParts = hash.split('?');
+    console.log('AuthCallback: Hash parts:', hashParts);
+    
+    const queryString = hashParts[1] || '';
+    console.log('AuthCallback: Query string:', queryString);
+    
+    const hashParams = new URLSearchParams(queryString);
     const token = hashParams.get('token');
     
     console.log('AuthCallback: Token from URL:', token);
+    console.log('AuthCallback: Token length:', token ? token.length : 0);
+    
+    // Store detailed parsing debug info
+    localStorage.setItem('token_parsing_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      fullHash: hash,
+      hashParts: hashParts,
+      queryString: queryString,
+      tokenFound: !!token,
+      tokenLength: token ? token.length : 0
+    }));
     
     if (token) {
       console.log('AuthCallback: Token found, storing in localStorage...');
