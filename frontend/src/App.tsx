@@ -280,6 +280,7 @@ function App() {
                   <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>AuthCallback Reached:</div>
                   <div>URL: {parsedAuthCallback.url}</div>
                   <div>Search: {parsedAuthCallback.search}</div>
+                  <div>Hash: {parsedAuthCallback.hash}</div>
                   <div>Time: {parsedAuthCallback.timestamp}</div>
                 </>
               )}

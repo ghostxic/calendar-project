@@ -13,11 +13,14 @@ export default function AuthCallback() {
     localStorage.setItem('auth_callback_reached', JSON.stringify({
       timestamp: new Date().toISOString(),
       url: window.location.href,
-      search: window.location.search
+      search: window.location.search,
+      hash: window.location.hash
     }));
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    // Parse token from hash URL (e.g., #/auth/callback?token=...)
+    const hash = window.location.hash;
+    const hashParams = new URLSearchParams(hash.split('?')[1] || '');
+    const token = hashParams.get('token');
     
     console.log('AuthCallback: Token from URL:', token);
     
