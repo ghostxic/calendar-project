@@ -18,7 +18,9 @@ function App() {
   const [pendingEvent, setPendingEvent] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const API_BASE_URL = 'http://localhost:3001/api';
+  const API_BASE_URL = import.meta.env.PROD 
+    ? 'https://your-backend-url.railway.app/api'  // Replace with your actual backend URL
+    : 'http://localhost:3001/api';
 
   useEffect(() => {
     // Check if user is authenticated
