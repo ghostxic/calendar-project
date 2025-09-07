@@ -16,11 +16,11 @@ export const processTextToEvent = async (text: string, userTimezone?: string) =>
   
   // Get current time in user's timezone or UTC
   const now = new Date();
-  const userTimezone = userTimezone || 'UTC';
+  const timezone = userTimezone || 'UTC';
   
   // Format current time for the prompt
   const currentTime = now.toLocaleString('en-US', { 
-    timeZone: userTimezone,
+    timeZone: timezone,
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -35,9 +35,9 @@ export const processTextToEvent = async (text: string, userTimezone?: string) =>
 "${text}"
 
 IMPORTANT TIMEZONE CONTEXT:
-- User's timezone: ${userTimezone}
+- User's timezone: ${timezone}
 - Current time in user's timezone: ${currentTime}
-- Always interpret times relative to the user's timezone (${userTimezone})
+- Always interpret times relative to the user's timezone (${timezone})
 - Convert all times to UTC in the final JSON output
 
 Rules:
