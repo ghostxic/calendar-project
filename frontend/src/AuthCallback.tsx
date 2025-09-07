@@ -24,7 +24,21 @@ export default function AuthCallback() {
     if (token) {
       console.log('AuthCallback: Token found, storing in localStorage...');
       localStorage.setItem('authToken', token);
-      console.log('AuthCallback: Token stored, navigating to home...');
+      
+      // Verify token was stored
+      const storedToken = localStorage.getItem('authToken');
+      console.log('AuthCallback: Token stored successfully:', storedToken ? 'Yes' : 'No');
+      console.log('AuthCallback: Stored token length:', storedToken ? storedToken.length : 0);
+      
+      // Store debug info about token storage
+      localStorage.setItem('token_storage_debug', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        tokenLength: token.length,
+        storedSuccessfully: !!storedToken,
+        storedTokenLength: storedToken ? storedToken.length : 0
+      }));
+      
+      console.log('AuthCallback: Navigating to home...');
       navigate('/');
     } else {
       console.log('AuthCallback: No token found, navigating to home...');

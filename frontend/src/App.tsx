@@ -211,6 +211,9 @@ function App() {
     const authCallbackInfo = localStorage.getItem('auth_callback_reached');
     const parsedAuthCallback = authCallbackInfo ? JSON.parse(authCallbackInfo) : null;
     
+    const tokenStorageInfo = localStorage.getItem('token_storage_debug');
+    const parsedTokenStorage = tokenStorageInfo ? JSON.parse(tokenStorageInfo) : null;
+    
     return (
       <div style={{ 
         height: '100vh', 
@@ -254,7 +257,7 @@ function App() {
           </p>
           
           {/* Debug Info */}
-          {(parsedDebug || parsedAuthCallback) && (
+          {(parsedDebug || parsedAuthCallback || parsedTokenStorage) && (
             <div style={{
               backgroundColor: '#f3f4f6',
               borderRadius: '0.5rem',
@@ -278,6 +281,15 @@ function App() {
                   <div>URL: {parsedAuthCallback.url}</div>
                   <div>Search: {parsedAuthCallback.search}</div>
                   <div>Time: {parsedAuthCallback.timestamp}</div>
+                </>
+              )}
+              {parsedTokenStorage && (
+                <>
+                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>Token Storage:</div>
+                  <div>Token Length: {parsedTokenStorage.tokenLength}</div>
+                  <div>Stored Successfully: {parsedTokenStorage.storedSuccessfully ? 'Yes' : 'No'}</div>
+                  <div>Stored Token Length: {parsedTokenStorage.storedTokenLength}</div>
+                  <div>Time: {parsedTokenStorage.timestamp}</div>
                 </>
               )}
             </div>
