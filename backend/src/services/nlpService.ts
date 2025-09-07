@@ -1,7 +1,9 @@
 import { Ollama } from 'ollama';
+import OpenAI from 'openai';
 
-// Only initialize Ollama if not in production (Railway doesn't have Ollama)
+// Initialize services based on environment
 const ollama = process.env.NODE_ENV === 'production' ? null : new Ollama({ host: 'http://localhost:11434' });
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 export const processTextToEvent = async (text: string) => {
   const prompt = `You are a calendar event parser. Convert this text to JSON only:
@@ -27,50 +29,75 @@ Output: {"title": "Meeting", "start": "2025-09-07T15:00:00.000Z", "end": "2025-0
 Now parse: "${text}"`;
 
   try {
-    // If Ollama is not available (production), use smart fallback
-    if (!ollama) {
-      console.log('Ollama not available, using smart fallback...');
-      return createSmartFallback(text);
-    }
-
-    console.log('Sending request to Ollama...');
-    const response = await ollama.generate({
-      model: 'llama3',
-      prompt: prompt,
-      stream: false
-    });
-
-    console.log('Ollama response received:', response.response);
-    
-    // Try to extract JSON from response
-    const responseText = response.response.trim();
-    
-    // Look for JSON in various formats
-    let jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      // Try to find JSON after "Output:" or similar
-      jsonMatch = responseText.match(/Output:\s*(\{[\s\S]*\})/);
-      if (jsonMatch) jsonMatch = [jsonMatch[1]];
-    }
-    
-    if (jsonMatch) {
-      try {
-        const eventData = JSON.parse(jsonMatch[0]);
-        console.log('Parsed event data:', eventData);
-        
-        // Validate required fields
-        if (!eventData.title || !eventData.start || !eventData.end) {
-          throw new Error('Missing required fields');
+    // Try OpenAI first (production), then Ollama (local), then fallback
+    if (openai) {
+      console.log('Using OpenAI for NLP processing...');
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 200,
+        temperature: 0.1
+      });
+      
+      const responseText = response.choices[0]?.message?.content?.trim() || '';
+      console.log('OpenAI response received:', responseText);
+      
+      // Try to parse JSON from OpenAI response
+      let jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const eventData = JSON.parse(jsonMatch[0]);
+          if (eventData.title && eventData.start && eventData.end) {
+            console.log('Successfully parsed OpenAI response:', eventData);
+            return eventData;
+          }
+        } catch (parseError) {
+          console.log('Failed to parse OpenAI JSON, using fallback');
         }
-        
-        return eventData;
-      } catch (parseError) {
-        console.log('JSON parse error:', parseError);
-        throw new Error('Invalid JSON format');
+      }
+    } else if (ollama) {
+      console.log('Using Ollama for NLP processing...');
+      const response = await ollama.generate({
+        model: 'llama3',
+        prompt: prompt,
+        stream: false
+      });
+
+      console.log('Ollama response received:', response.response);
+      
+      // Try to extract JSON from response
+      const responseText = response.response.trim();
+      
+      // Look for JSON in various formats
+      let jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        // Try to find JSON after "Output:" or similar
+        jsonMatch = responseText.match(/Output:\s*(\{[\s\S]*\})/);
+        if (jsonMatch) jsonMatch = [jsonMatch[1]];
+      }
+      
+      if (jsonMatch) {
+        try {
+          const eventData = JSON.parse(jsonMatch[0]);
+          console.log('Parsed event data:', eventData);
+          
+          // Validate required fields
+          if (!eventData.title || !eventData.start || !eventData.end) {
+            throw new Error('Missing required fields');
+          }
+          
+          return eventData;
+        } catch (parseError) {
+          console.log('JSON parse error:', parseError);
+          throw new Error('Invalid JSON format');
+        }
+      } else {
+        console.log('No JSON found in response, using fallback');
+        throw new Error('No JSON found in response');
       }
     } else {
-      console.log('No JSON found in response, using fallback');
-      throw new Error('No JSON found in response');
+      console.log('No NLP service available, using smart fallback...');
+      return createSmartFallback(text);
     }
   } catch (error) {
     console.error('Ollama processing error:', error);
