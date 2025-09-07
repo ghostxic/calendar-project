@@ -21,8 +21,13 @@ function App() {
   const API_BASE_URL = import.meta.env.PROD 
     ? 'https://your-railway-url.railway.app/api'  // Replace with your actual Railway URL
     : 'http://localhost:3001/api';
+  
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   useEffect(() => {
+    // Check backend status
+    checkBackendStatus();
+    
     // Check if user is authenticated
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -30,6 +35,28 @@ function App() {
       fetchEvents();
     }
   }, []);
+
+  const checkBackendStatus = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        setBackendStatus('online');
+      } else {
+        setBackendStatus('offline');
+      }
+    } catch (error) {
+      setBackendStatus('offline');
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -274,6 +301,20 @@ function App() {
         </div>
       </header>
 
+      {/* Backend Status Banner */}
+      {backendStatus === 'offline' && (
+        <div style={{
+          backgroundColor: '#fef2f2',
+          borderBottom: '1px solid #fecaca',
+          padding: '0.75rem 1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ color: '#991b1b', fontWeight: '500' }}>
+            ⚠️ Backend server is offline. Please deploy the backend to Railway to use this app.
+          </div>
+        </div>
+      )}
+
       <main style={{ 
         flex: 1,
         width: '100%',
@@ -304,7 +345,7 @@ function App() {
               Schedule an Event
             </h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
+      <div>
                 <label htmlFor="eventInput" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.75rem' }}>
                   Describe your event in natural language
                 </label>
@@ -325,7 +366,7 @@ function App() {
                   }}
                   rows={4}
                 />
-              </div>
+      </div>
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
@@ -343,7 +384,7 @@ function App() {
                 }}
               >
                 {isLoading ? 'Processing...' : 'Create Event'}
-              </button>
+        </button>
             </form>
           </div>
 
@@ -549,7 +590,7 @@ function App() {
         </div>
       )}
       {console.log('Modal state - showConfirmation:', showConfirmation, 'pendingEvent:', pendingEvent)}
-    </div>
+      </div>
   );
 }
 
