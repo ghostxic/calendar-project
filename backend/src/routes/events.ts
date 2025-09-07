@@ -1,5 +1,6 @@
 import express from 'express';
 import { google } from 'googleapis';
+import { processTextToEvent } from '../services/nlpService';
 
 const router = express.Router();
 
@@ -91,18 +92,8 @@ router.post('/', authenticateToken, async (req, res) => {
 router.post('/process', authenticateToken, async (req, res) => {
   try {
     const { text } = req.body;
-    
-    // TODO: Implement NLP processing with Ollama/Llama 3
-    // For now, return a mock response
-    const mockEvent = {
-      title: 'Meeting',
-      start: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
-      end: new Date(Date.now() + 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(), // Tomorrow + 1 hour
-      description: 'Generated from: ' + text,
-      location: 'TBD'
-    };
-
-    res.json({ event: mockEvent, confidence: 0.8 });
+    const eventData = await processTextToEvent(text);
+    res.json({ event: eventData, confidence: 0.8 });
   } catch (error) {
     console.error('Error processing text:', error);
     res.status(500).json({ error: 'Failed to process text' });

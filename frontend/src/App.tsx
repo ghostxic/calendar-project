@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import EventConfirmation from './components/EventConfirmation'
 
 interface Event {
   id: string;
@@ -14,6 +15,8 @@ function App() {
   const [events, setEvents] = useState<Event[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingEvent, setPendingEvent] = useState<any>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -78,16 +81,42 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        // TODO: Show confirmation modal
-        console.log('Processed event:', data);
+        setPendingEvent(data.event);
+        setShowConfirmation(true);
         setInputText('');
-        fetchEvents(); // Refresh events
       }
     } catch (error) {
       console.error('Error processing text:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleConfirmEvent = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE_URL}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(pendingEvent)
+      });
+
+      if (response.ok) {
+        setShowConfirmation(false);
+        setPendingEvent(null);
+        fetchEvents(); // Refresh events
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+    }
+  };
+
+  const handleCancelEvent = () => {
+    setShowConfirmation(false);
+    setPendingEvent(null);
   };
 
   if (!isAuthenticated) {
@@ -185,6 +214,18 @@ function App() {
           </div>
         </div>
       </main>
+
+      {showConfirmation && pendingEvent && (
+        <EventConfirmation
+          event={pendingEvent}
+          onConfirm={handleConfirmEvent}
+          onCancel={handleCancelEvent}
+          onEdit={(event) => {
+            // Simple edit - just update the pending event
+            setPendingEvent(event);
+          }}
+        />
+      )}
     </div>
   );
 }
