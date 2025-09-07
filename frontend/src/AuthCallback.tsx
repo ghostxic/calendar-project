@@ -9,6 +9,13 @@ export default function AuthCallback() {
     console.log('AuthCallback: Current URL:', window.location.href);
     console.log('AuthCallback: Search params:', window.location.search);
     
+    // Set a flag to show this component was reached
+    localStorage.setItem('auth_callback_reached', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      search: window.location.search
+    }));
+    
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     

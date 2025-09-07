@@ -32,6 +32,16 @@ function App() {
     const token = localStorage.getItem('authToken');
     console.log('App: Checking authentication...');
     console.log('App: Token from localStorage:', token);
+    console.log('App: Current URL:', window.location.href);
+    console.log('App: Current hash:', window.location.hash);
+    
+    // Store debug info in localStorage for persistence
+    localStorage.setItem('debug_auth_check', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      token: token ? 'present' : 'missing',
+      url: window.location.href,
+      hash: window.location.hash
+    }));
     
     if (token) {
       console.log('App: Token found, setting authenticated to true...');
@@ -194,6 +204,13 @@ function App() {
 
 
   if (!isAuthenticated) {
+    // Get debug info from localStorage
+    const debugInfo = localStorage.getItem('debug_auth_check');
+    const parsedDebug = debugInfo ? JSON.parse(debugInfo) : null;
+    
+    const authCallbackInfo = localStorage.getItem('auth_callback_reached');
+    const parsedAuthCallback = authCallbackInfo ? JSON.parse(authCallbackInfo) : null;
+    
     return (
       <div style={{ 
         height: '100vh', 
@@ -235,6 +252,36 @@ function App() {
           }}>
             Convert natural language to calendar events
           </p>
+          
+          {/* Debug Info */}
+          {(parsedDebug || parsedAuthCallback) && (
+            <div style={{
+              backgroundColor: '#f3f4f6',
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              marginBottom: '1rem',
+              fontSize: '0.875rem',
+              textAlign: 'left'
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Debug Info:</div>
+              {parsedDebug && (
+                <>
+                  <div>Token: {parsedDebug.token}</div>
+                  <div>URL: {parsedDebug.url}</div>
+                  <div>Hash: {parsedDebug.hash}</div>
+                  <div>Time: {parsedDebug.timestamp}</div>
+                </>
+              )}
+              {parsedAuthCallback && (
+                <>
+                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>AuthCallback Reached:</div>
+                  <div>URL: {parsedAuthCallback.url}</div>
+                  <div>Search: {parsedAuthCallback.search}</div>
+                  <div>Time: {parsedAuthCallback.timestamp}</div>
+                </>
+              )}
+            </div>
+          )}
           <button
             onClick={handleGoogleAuth}
             style={{
