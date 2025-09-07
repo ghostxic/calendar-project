@@ -30,9 +30,15 @@ function App() {
     
     // Check if user is authenticated
     const token = localStorage.getItem('authToken');
+    console.log('App: Checking authentication...');
+    console.log('App: Token from localStorage:', token);
+    
     if (token) {
+      console.log('App: Token found, setting authenticated to true...');
       setIsAuthenticated(true);
       fetchEvents();
+    } else {
+      console.log('App: No token found, user not authenticated');
     }
   }, []);
 
@@ -100,6 +106,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    console.log('App: Logout called, removing token and setting authenticated to false');
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setEvents([]);
