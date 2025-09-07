@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 interface Event {
   id: string;
   title: string;
-  start: string;
-  end: string;
+  start: string | { dateTime?: string; date?: string };
+  end: string | { dateTime?: string; date?: string };
   description?: string;
   location?: string;
   summary?: string; // For Google Calendar events
@@ -442,8 +442,16 @@ function App() {
               ) : (
                 events.map((event) => {
                   // Handle different date formats from Google Calendar
-                  const startDate = event.start?.dateTime || event.start?.date || event.start;
-                  const endDate = event.end?.dateTime || event.end?.date || event.end;
+                  const getDateString = (dateField: string | { dateTime?: string; date?: string }) => {
+                    if (typeof dateField === 'string') {
+                      return dateField;
+                    } else {
+                      return dateField?.dateTime || dateField?.date || '';
+                    }
+                  };
+                  
+                  const startDate = getDateString(event.start);
+                  const endDate = getDateString(event.end);
                   
                   const formatDate = (dateStr: string) => {
                     try {
