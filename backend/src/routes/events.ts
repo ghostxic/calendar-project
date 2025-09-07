@@ -146,4 +146,19 @@ router.post('/process', authenticateToken, async (req, res) => {
   }
 });
 
+// NLP service status check
+router.get('/nlp-status', (req, res) => {
+  const openai = process.env.OPENAI_API_KEY ? true : false;
+  const ollama = process.env.NODE_ENV !== 'production';
+  
+  res.json({
+    environment: process.env.NODE_ENV,
+    openai_available: openai,
+    ollama_available: ollama,
+    fallback_available: true,
+    active_service: openai ? 'OpenAI' : (ollama ? 'Ollama' : 'Fallback'),
+    timestamp: new Date().toISOString()
+  });
+});
+
 export default router;

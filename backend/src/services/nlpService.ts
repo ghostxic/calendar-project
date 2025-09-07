@@ -6,6 +6,13 @@ const ollama = process.env.NODE_ENV === 'production' ? null : new Ollama({ host:
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 export const processTextToEvent = async (text: string) => {
+  console.log('=== NLP Processing Started ===');
+  console.log('Input text:', text);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('OpenAI available:', !!openai);
+  console.log('Ollama available:', !!ollama);
+  console.log('OpenAI API Key set:', !!process.env.OPENAI_API_KEY);
+  
   const prompt = `You are a calendar event parser. Convert this text to JSON only:
 
 "${text}"
@@ -114,51 +121,107 @@ const createSmartFallback = (text: string) => {
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   
-  // Extract title from text - improved regex
+  // Extract title from text - multiple patterns
   let title = 'Event';
-  const titleMatch = text.match(/(?:^|\s)([a-zA-Z\s]+?)(?:\s+(?:for|at|tomorrow|today|hours?|minutes?|pm|am|\d+|\d+:\d+)|\s+hours?|\s+minutes?|$)/i);
-  if (titleMatch && titleMatch[1].trim().length > 0) {
-    title = titleMatch[1].trim();
-    // Capitalize first letter of each word
-    title = title.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  
+  // Pattern 1: Simple "do X" format
+  const doPattern = text.match(/^(?:i\s+)?(?:want\s+to\s+)?(?:need\s+to\s+)?(?:have\s+to\s+)?(?:should\s+)?(?:can\s+)?(?:will\s+)?(?:do\s+)?([a-zA-Z\s]+?)(?:\s+(?:tomorrow|today|at|for|hours?|minutes?|pm|am|\d+|\d+:\d+)|\s*$)/i);
+  if (doPattern && doPattern[1].trim().length > 0) {
+    title = doPattern[1].trim();
   }
   
-  // Extract duration - improved regex
+  // Pattern 2: "X meeting/appointment/session" format
+  const meetingPattern = text.match(/([a-zA-Z\s]+?)\s+(?:meeting|appointment|session|call|conference|interview|lunch|dinner|breakfast|workout|gym|class|lesson|training|workshop|seminar)/i);
+  if (meetingPattern && meetingPattern[1].trim().length > 0) {
+    title = `${meetingPattern[1].trim()} ${meetingPattern[0].split(' ').pop()}`;
+  }
+  
+  // Pattern 3: Generic word extraction
+  if (title === 'Event') {
+    const words = text.split(' ').filter(word => 
+      word.length > 2 && 
+      !['the', 'and', 'for', 'with', 'at', 'in', 'on', 'to', 'of', 'a', 'an'].includes(word.toLowerCase()) &&
+      !word.match(/^\d+$/) &&
+      !word.match(/^(am|pm|hours?|minutes?)$/i)
+    );
+    if (words.length > 0) {
+      title = words.slice(0, 3).join(' ');
+    }
+  }
+  
+  // Capitalize title
+  title = title.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  
+  // Extract duration - multiple patterns
   let durationHours = 1;
-  const durationMatch = text.match(/(\d+)\s*(?:hours?|hrs?|hour)/i);
-  if (durationMatch) {
-    durationHours = parseInt(durationMatch[1]);
+  const durationPatterns = [
+    /(\d+)\s*(?:hours?|hrs?|hour)/i,
+    /for\s+(\d+)\s*(?:hours?|hrs?|hour)/i,
+    /(\d+)\s*(?:hour|hr)\s+(?:long|duration)/i
+  ];
+  
+  for (const pattern of durationPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      durationHours = parseInt(match[1]);
+      break;
+    }
   }
   
-  // Extract location - improved regex
+  // Extract location - multiple patterns
   let location = 'TBD';
-  const locationMatch = text.match(/(?:at|@|in)\s+([a-zA-Z0-9\s]+?)(?:\s+(?:tomorrow|today|hours?|minutes?|pm|am|\d+)|\s|$)/i);
-  if (locationMatch && locationMatch[1].trim().length > 0) {
-    location = locationMatch[1].trim();
+  const locationPatterns = [
+    /(?:at|@|in)\s+([a-zA-Z0-9\s]+?)(?:\s+(?:tomorrow|today|hours?|minutes?|pm|am|\d+)|\s|$)/i,
+    /(?:meeting|appointment|session|call|conference|interview|lunch|dinner|breakfast|workout|gym|class|lesson|training|workshop|seminar)\s+(?:at|@|in)\s+([a-zA-Z0-9\s]+?)(?:\s|$)/i,
+    /(?:go\s+to|visit|see)\s+([a-zA-Z0-9\s]+?)(?:\s|$)/i
+  ];
+  
+  for (const pattern of locationPatterns) {
+    const match = text.match(pattern);
+    if (match && match[1].trim().length > 0) {
+      location = match[1].trim();
+      break;
+    }
   }
   
   // Determine date - improved logic
   let eventDate = tomorrow;
-  if (text.toLowerCase().includes('today')) {
+  const textLower = text.toLowerCase();
+  
+  if (textLower.includes('today')) {
     eventDate = now;
-  } else if (text.toLowerCase().includes('tomorrow')) {
+  } else if (textLower.includes('tomorrow')) {
     eventDate = tomorrow;
+  } else if (textLower.includes('next week')) {
+    eventDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  } else if (textLower.includes('this week')) {
+    eventDate = now;
   }
   
-  // Determine time - improved regex
+  // Determine time - improved regex with multiple patterns
   let eventTime = new Date(eventDate);
   eventTime.setHours(14, 0, 0, 0); // Default to 2pm
   
-  const timeMatch = text.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
-  if (timeMatch) {
-    let hours = parseInt(timeMatch[1]);
-    const minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-    const ampm = timeMatch[3]?.toLowerCase();
-    
-    if (ampm === 'pm' && hours !== 12) hours += 12;
-    if (ampm === 'am' && hours === 12) hours = 0;
-    
-    eventTime.setHours(hours, minutes, 0, 0);
+  const timePatterns = [
+    /(\d{1,2}):(\d{2})\s*(am|pm)?/i,
+    /(\d{1,2})\s*(am|pm)/i,
+    /at\s+(\d{1,2}):?(\d{2})?\s*(am|pm)?/i,
+    /(\d{1,2})\s*(?:o'clock|oclock)/i
+  ];
+  
+  for (const pattern of timePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let hours = parseInt(match[1]);
+      const minutes = match[2] ? parseInt(match[2]) : 0;
+      const ampm = match[3]?.toLowerCase();
+      
+      if (ampm === 'pm' && hours !== 12) hours += 12;
+      if (ampm === 'am' && hours === 12) hours = 0;
+      
+      eventTime.setHours(hours, minutes, 0, 0);
+      break;
+    }
   }
   
   const endTime = new Date(eventTime.getTime() + durationHours * 60 * 60 * 1000);
