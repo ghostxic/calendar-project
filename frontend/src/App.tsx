@@ -78,11 +78,24 @@ function App() {
 
   const handleGoogleAuth = async () => {
     try {
+      console.log('Initiating Google OAuth...');
+      console.log('API URL:', `${API_BASE_URL}/auth/google`);
+      
       const response = await fetch(`${API_BASE_URL}/auth/google`);
+      console.log('OAuth response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('OAuth data received:', data);
+      console.log('Redirecting to:', data.authUrl);
+      
       window.location.href = data.authUrl;
     } catch (error) {
       console.error('Error initiating auth:', error);
+      alert('Authentication failed. Please check the console for details.');
     }
   };
 

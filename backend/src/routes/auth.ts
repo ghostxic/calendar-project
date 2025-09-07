@@ -65,8 +65,8 @@ router.get('/google/callback', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Redirect to frontend with token
-    const frontendUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${jwtToken}`;
+    // Redirect to frontend with token (using hash router)
+    const frontendUrl = `${process.env.FRONTEND_URL}/#/auth/callback?token=${jwtToken}`;
     res.redirect(frontendUrl);
 
   } catch (error) {
