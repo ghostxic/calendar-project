@@ -109,39 +109,43 @@ Now parse: "${text}"`;
 };
 
 const createSmartFallback = (text: string) => {
+  console.log('Creating smart fallback for text:', text);
+  
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   
-  // Extract title from text
+  // Extract title from text - improved regex
   let title = 'Event';
-  const titleMatch = text.match(/(?:^|\s)([a-zA-Z\s]+?)(?:\s+(?:for|at|tomorrow|today|hours?|minutes?|pm|am)|\s+\d+|\s+hours?|\s+minutes?|$)/i);
-  if (titleMatch) {
+  const titleMatch = text.match(/(?:^|\s)([a-zA-Z\s]+?)(?:\s+(?:for|at|tomorrow|today|hours?|minutes?|pm|am|\d+|\d+:\d+)|\s+hours?|\s+minutes?|$)/i);
+  if (titleMatch && titleMatch[1].trim().length > 0) {
     title = titleMatch[1].trim();
     // Capitalize first letter of each word
     title = title.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
   
-  // Extract duration
+  // Extract duration - improved regex
   let durationHours = 1;
-  const durationMatch = text.match(/(\d+)\s*(?:hours?|hrs?)/i);
+  const durationMatch = text.match(/(\d+)\s*(?:hours?|hrs?|hour)/i);
   if (durationMatch) {
     durationHours = parseInt(durationMatch[1]);
   }
   
-  // Extract location
+  // Extract location - improved regex
   let location = 'TBD';
-  const locationMatch = text.match(/(?:at|@)\s+([a-zA-Z\s]+?)(?:\s|$)/i);
-  if (locationMatch) {
+  const locationMatch = text.match(/(?:at|@|in)\s+([a-zA-Z0-9\s]+?)(?:\s+(?:tomorrow|today|hours?|minutes?|pm|am|\d+)|\s|$)/i);
+  if (locationMatch && locationMatch[1].trim().length > 0) {
     location = locationMatch[1].trim();
   }
   
-  // Determine date
+  // Determine date - improved logic
   let eventDate = tomorrow;
   if (text.toLowerCase().includes('today')) {
     eventDate = now;
+  } else if (text.toLowerCase().includes('tomorrow')) {
+    eventDate = tomorrow;
   }
   
-  // Determine time
+  // Determine time - improved regex
   let eventTime = new Date(eventDate);
   eventTime.setHours(14, 0, 0, 0); // Default to 2pm
   
@@ -159,11 +163,14 @@ const createSmartFallback = (text: string) => {
   
   const endTime = new Date(eventTime.getTime() + durationHours * 60 * 60 * 1000);
   
-  return {
+  const result = {
     title: title,
     start: eventTime.toISOString(),
     end: endTime.toISOString(),
     location: location,
     description: text
   };
+  
+  console.log('Smart fallback result:', result);
+  return result;
 };

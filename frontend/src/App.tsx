@@ -204,18 +204,6 @@ function App() {
 
 
   if (!isAuthenticated) {
-    // Get debug info from localStorage
-    const debugInfo = localStorage.getItem('debug_auth_check');
-    const parsedDebug = debugInfo ? JSON.parse(debugInfo) : null;
-    
-    const authCallbackInfo = localStorage.getItem('auth_callback_reached');
-    const parsedAuthCallback = authCallbackInfo ? JSON.parse(authCallbackInfo) : null;
-    
-    const tokenStorageInfo = localStorage.getItem('token_storage_debug');
-    const parsedTokenStorage = tokenStorageInfo ? JSON.parse(tokenStorageInfo) : null;
-    
-    const tokenParsingInfo = localStorage.getItem('token_parsing_debug');
-    const parsedTokenParsing = tokenParsingInfo ? JSON.parse(tokenParsingInfo) : null;
     
     return (
       <div style={{ 
@@ -259,61 +247,6 @@ function App() {
             Convert natural language to calendar events
           </p>
           
-          {/* Debug Info */}
-          {(parsedDebug || parsedAuthCallback || parsedTokenStorage || parsedTokenParsing) && (
-            <div style={{
-              backgroundColor: '#f3f4f6',
-              borderRadius: '0.5rem',
-              padding: '1rem',
-              marginBottom: '1rem',
-              fontSize: '0.875rem',
-              textAlign: 'left'
-            }}>
-              <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Debug Info:</div>
-              {parsedDebug && (
-                <>
-                  <div>Token: {parsedDebug.token}</div>
-                  <div>URL: {parsedDebug.url}</div>
-                  <div>Hash: {parsedDebug.hash}</div>
-                  <div>Time: {parsedDebug.timestamp}</div>
-                </>
-              )}
-              {parsedAuthCallback && (
-                <>
-                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>AuthCallback Reached:</div>
-                  <div>URL: {parsedAuthCallback.url}</div>
-                  <div>Search: {parsedAuthCallback.search}</div>
-                  <div>Hash: {parsedAuthCallback.hash}</div>
-                  <div>Time: {parsedAuthCallback.timestamp}</div>
-                </>
-              )}
-              {parsedTokenStorage && (
-                <>
-                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>Token Storage:</div>
-                  <div>Token Length: {parsedTokenStorage.tokenLength}</div>
-                  <div>Stored Successfully: {parsedTokenStorage.storedSuccessfully ? 'Yes' : 'No'}</div>
-                  <div>Stored Token Length: {parsedTokenStorage.storedTokenLength}</div>
-                  <div>Time: {parsedTokenStorage.timestamp}</div>
-                </>
-              )}
-              {parsedTokenParsing && (
-                <>
-                  <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>Token Parsing:</div>
-                  <div>React Router Search: {parsedTokenParsing.reactRouterSearch}</div>
-                  <div>React Router Hash: {parsedTokenParsing.reactRouterHash}</div>
-                  <div>Window Hash: {parsedTokenParsing.windowHash}</div>
-                  <div>Hash Parts: {JSON.stringify(parsedTokenParsing.hashParts)}</div>
-                  <div>Query String: {parsedTokenParsing.queryString}</div>
-                  <div>Token From Search: {parsedTokenParsing.tokenFromSearch ? 'Found' : 'Not Found'}</div>
-                  <div>Token From Hash: {parsedTokenParsing.tokenFromHash ? 'Found' : 'Not Found'}</div>
-                  <div>Final Token: {parsedTokenParsing.finalToken ? 'Found' : 'Not Found'}</div>
-                  <div>Token Found: {parsedTokenParsing.tokenFound ? 'Yes' : 'No'}</div>
-                  <div>Token Length: {parsedTokenParsing.tokenLength}</div>
-                  <div>Time: {parsedTokenParsing.timestamp}</div>
-                </>
-              )}
-            </div>
-          )}
           <button
             onClick={handleGoogleAuth}
             style={{
@@ -414,32 +347,33 @@ function App() {
         </div>
       )}
 
-      <main style={{ 
-        flex: 1,
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
-          gap: '2rem',
-          width: '100%',
-          maxWidth: '900px',
-          justifyItems: 'center'
-        }}>
-          {/* Input Section */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.75rem', 
-            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', 
-            padding: '2rem', 
-            border: '1px solid #f3f4f6',
-            width: '100%',
-            maxWidth: '450px'
-          }}>
+             <main style={{
+               flex: 1,
+               width: '100%',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center',
+               padding: '2rem 1rem'
+             }}>
+               <div style={{
+                 display: 'flex',
+                 flexDirection: 'row',
+                 gap: '2rem',
+                 width: '100%',
+                 maxWidth: '1200px',
+                 justifyContent: 'center',
+                 alignItems: 'flex-start'
+               }}>
+                 {/* Input Section */}
+                 <div style={{
+                   backgroundColor: 'white',
+                   borderRadius: '0.75rem',
+                   boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                   padding: '2rem',
+                   border: '1px solid #f3f4f6',
+                   width: '450px',
+                   flexShrink: 0
+                 }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1.5rem' }}>
               Schedule an Event
             </h2>
@@ -487,16 +421,16 @@ function App() {
             </form>
           </div>
 
-          {/* Events List */}
-          <div style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '0.75rem', 
-            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', 
-            padding: '2rem', 
-            border: '1px solid #f3f4f6',
-            width: '100%',
-            maxWidth: '450px'
-          }}>
+                 {/* Events List */}
+                 <div style={{
+                   backgroundColor: 'white',
+                   borderRadius: '0.75rem',
+                   boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                   padding: '2rem',
+                   border: '1px solid #f3f4f6',
+                   width: '450px',
+                   flexShrink: 0
+                 }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1.5rem' }}>
               Upcoming Events
             </h2>
@@ -506,26 +440,41 @@ function App() {
                   <p style={{ color: '#6b7280' }}>No events scheduled</p>
                 </div>
               ) : (
-                events.map((event) => (
-                  <div key={event.id} style={{ 
-                    borderLeft: '4px solid #3b82f6', 
-                    paddingLeft: '1.5rem', 
-                    padding: '1rem', 
-                    backgroundColor: '#f9fafb', 
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <h3 style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>{event.title || event.summary}</h3>
-                    <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.25rem' }}>
-                      {new Date(event.start).toLocaleString()}
-                    </p>
-                    {event.location && (
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                        📍 {event.location}
+                events.map((event) => {
+                  // Handle different date formats from Google Calendar
+                  const startDate = event.start?.dateTime || event.start?.date || event.start;
+                  const endDate = event.end?.dateTime || event.end?.date || event.end;
+                  
+                  const formatDate = (dateStr: string) => {
+                    try {
+                      const date = new Date(dateStr);
+                      return isNaN(date.getTime()) ? 'Date TBD' : date.toLocaleString();
+                    } catch {
+                      return 'Date TBD';
+                    }
+                  };
+                  
+                  return (
+                    <div key={event.id} style={{ 
+                      borderLeft: '4px solid #3b82f6', 
+                      paddingLeft: '1.5rem', 
+                      padding: '1rem', 
+                      backgroundColor: '#f9fafb', 
+                      borderRadius: '0.5rem',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <h3 style={{ fontWeight: '600', color: '#111827', marginBottom: '0.25rem' }}>{event.title || event.summary}</h3>
+                      <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '0.25rem' }}>
+                        {formatDate(startDate)} - {formatDate(endDate)}
                       </p>
-                    )}
-                  </div>
-                ))
+                      {event.location && (
+                        <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                          📍 {event.location}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
