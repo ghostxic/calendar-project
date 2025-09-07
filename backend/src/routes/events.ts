@@ -111,10 +111,11 @@ router.post('/', authenticateToken, async (req, res) => {
 router.post('/process', authenticateToken, async (req, res) => {
   try {
     console.log('Processing text request:', req.body);
-    const { text } = req.body;
+    const { text, timezone } = req.body;
     console.log('Text to process:', text);
+    console.log('User timezone:', timezone || 'UTC (default)');
     
-    const eventData = await processTextToEvent(text);
+    const eventData = await processTextToEvent(text, timezone);
     console.log('Event data processed:', eventData);
     
     // Check availability

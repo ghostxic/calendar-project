@@ -5,33 +5,57 @@ import OpenAI from 'openai';
 const ollama = process.env.NODE_ENV === 'production' ? null : new Ollama({ host: 'http://localhost:11434' });
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
-export const processTextToEvent = async (text: string) => {
+export const processTextToEvent = async (text: string, userTimezone?: string) => {
   console.log('=== NLP Processing Started ===');
   console.log('Input text:', text);
+  console.log('User timezone:', userTimezone || 'UTC (default)');
   console.log('Environment:', process.env.NODE_ENV);
   console.log('OpenAI available:', !!openai);
   console.log('Ollama available:', !!ollama);
   console.log('OpenAI API Key set:', !!process.env.OPENAI_API_KEY);
   
+  // Get current time in user's timezone or UTC
+  const now = new Date();
+  const userTimezone = userTimezone || 'UTC';
+  
+  // Format current time for the prompt
+  const currentTime = now.toLocaleString('en-US', { 
+    timeZone: userTimezone,
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+  
   const prompt = `You are a calendar event parser. Convert this text to JSON only:
 
 "${text}"
 
+IMPORTANT TIMEZONE CONTEXT:
+- User's timezone: ${userTimezone}
+- Current time in user's timezone: ${currentTime}
+- Always interpret times relative to the user's timezone (${userTimezone})
+- Convert all times to UTC in the final JSON output
+
 Rules:
 - Return ONLY valid JSON, no explanations
-- Use tomorrow's date if "tomorrow" is mentioned
-- Use today's date if "today" is mentioned  
-- Default to 2pm if no time specified
+- Use tomorrow's date if "tomorrow" is mentioned (relative to user's timezone)
+- Use today's date if "today" is mentioned (relative to user's timezone)
+- Default to 2pm in user's timezone if no time specified
 - Default to 1 hour duration if not specified
 - Extract location from text
-- Use proper ISO date format
+- Use proper ISO date format (UTC)
+- Convert all times from user's timezone to UTC
 
-Examples:
+Examples (assuming user is in America/New_York):
 Input: "gym session tomorrow for 2 hours at the arc gym"
-Output: {"title": "Gym Session", "start": "2025-09-08T14:00:00.000Z", "end": "2025-09-08T16:00:00.000Z", "location": "Arc Gym", "description": "Gym session"}
+Output: {"title": "Gym Session", "start": "2025-09-08T18:00:00.000Z", "end": "2025-09-08T20:00:00.000Z", "location": "Arc Gym", "description": "Gym session"}
 
 Input: "meeting at 3pm today"
-Output: {"title": "Meeting", "start": "2025-09-07T15:00:00.000Z", "end": "2025-09-07T16:00:00.000Z", "location": "TBD", "description": "Meeting"}
+Output: {"title": "Meeting", "start": "2025-09-07T19:00:00.000Z", "end": "2025-09-07T20:00:00.000Z", "location": "TBD", "description": "Meeting"}
 
 Now parse: "${text}"`;
 
@@ -104,19 +128,20 @@ Now parse: "${text}"`;
       }
     } else {
       console.log('No NLP service available, using smart fallback...');
-      return createSmartFallback(text);
+      return createSmartFallback(text, userTimezone);
     }
   } catch (error) {
-    console.error('Ollama processing error:', error);
+    console.error('NLP processing error:', error);
     // Smart fallback - try to extract basic info from the original text
-    const fallbackData = createSmartFallback(text);
+    const fallbackData = createSmartFallback(text, userTimezone);
     console.log('Using smart fallback data:', fallbackData);
     return fallbackData;
   }
 };
 
-const createSmartFallback = (text: string) => {
+const createSmartFallback = (text: string, userTimezone?: string) => {
   console.log('Creating smart fallback for text:', text);
+  console.log('User timezone for fallback:', userTimezone || 'UTC (default)');
   
   try {
     const now = new Date();
