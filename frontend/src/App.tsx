@@ -19,7 +19,7 @@ function App() {
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   const API_BASE_URL = import.meta.env.PROD 
-    ? 'https://your-backend-url.railway.app/api'  // Replace with your actual backend URL
+    ? 'https://your-railway-url.railway.app/api'  // Replace with your actual Railway URL
     : 'http://localhost:3001/api';
 
   useEffect(() => {
