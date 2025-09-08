@@ -20,7 +20,6 @@ A web application that converts natural language (text/audio) into Google Calend
 ### Backend
 - Node.js + Express + TypeScript
 - Google Calendar API v3
-- PostgreSQL (Supabase)
 - JWT authentication
 
 ## Getting Started
@@ -60,7 +59,6 @@ Create a `.env` file in the backend directory with:
 ```
 PORT=3001
 FRONTEND_URL=http://localhost:5173
-DATABASE_URL=your_postgresql_url
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
