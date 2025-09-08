@@ -1,4 +1,7 @@
-#root {
+/* currently unused */
+/* random original unused stuff below  */
+
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -39,4 +42,447 @@
 
 .read-the-docs {
   color: #888;
+} */
+
+
+
+
+
+
+
+
+
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-container {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.auth-card {
+  background-color: white;
+  padding: 3rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid #f3f4f6;
+}
+
+/* Auth Page Elements */
+.auth-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.auth-description {
+  color: #6b7280;
+  margin-bottom: 2rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.google-signin-button {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 100%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.google-signin-button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.app-header {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e7eb;
+  width: 100%;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.logout-button {
+  color: #4b5563;
+  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #1f2937;
+  background-color: #e5e7eb;
+}
+
+/* Backend Status Banner */
+.status-banner {
+  background-color: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.status-text {
+  color: #991b1b;
+  font-weight: 500;
+}
+
+/* Main Content and Columns */
+.main-content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.columns-container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.column-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  border: 1px solid #f3f4f6;
+  width: 450px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+/* Form and Textarea */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.event-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  color: #111827;
+  resize: none;
+  outline: none;
+}
+
+/* Submit Button */
+.submit-button {
+  width: 100%;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background-color: #2563eb; /* default color */
+}
+
+.submit-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Events List */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-item {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1.5rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.event-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.event-date {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.event-location {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Empty State */
+.no-events-message {
+  text-align: center;
+  padding: 2rem 0;
+  color: #6b7280;
+}
+
+/* Modal and Confirmation */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 28rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-inner {
+  padding: 2rem;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.modal-close-button {
+  color: #9ca3af;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.modal-close-button:hover {
+  color: #4b5563;
+}
+
+.modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-detail-item {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.detail-value {
+  color: #111827;
+  font-weight: 600;
+}
+
+.availability-status {
+  margin-top: 1rem;
+}
+
+.availability-available {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.availability-available span {
+  color: #166534;
+  font-weight: 500;
+}
+
+.availability-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.conflict-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.conflict-banner span {
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.conflict-list {
+  margin-top: 0.75rem;
+}
+
+.conflict-list-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #b91c1c;
+  margin-bottom: 0.5rem;
+}
+
+.conflict-item {
+  font-size: 0.875rem;
+  color: #dc2626;
+  background-color: white;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.suggested-times-container {
+  background-color: #fffbeb;
+  border: 1px solid #fed7aa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.suggested-times-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #92400e;
+  margin-bottom: 0.5rem;
+}
+
+.suggested-time-item {
+  font-size: 0.875rem;
+  color: #b45309;
+  background-color: white;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-button-cancel {
+  border: 1px solid #d1d5db;
+  color: #374151;
+  background-color: white;
+}
+
+.modal-button-cancel:hover {
+  background-color: #f9fafb;
+}
+
+.modal-button-create {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+}
+
+.modal-button-create:hover {
+  background-color: #1d4ed8;
 }
