@@ -70,9 +70,6 @@ router.get('/google/callback', async (req, res) => {
     const frontendUrl = process.env.NODE_ENV === 'production' 
       ? `https://ghostxic.github.io/calendar-project/#/auth/callback?token=${jwtToken}`
       : `${process.env.FRONTEND_URL}/#/auth/callback?token=${jwtToken}`;
-    console.log('OAuth callback: Redirecting to:', frontendUrl);
-    console.log('OAuth callback: FRONTEND_URL env var:', process.env.FRONTEND_URL);
-    console.log('OAuth callback: NODE_ENV:', process.env.NODE_ENV);
     res.redirect(frontendUrl);
 
   } catch (error) {

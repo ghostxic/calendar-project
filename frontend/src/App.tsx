@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './styles/App.css' // will need to move away from in-line styling for ease 
+import './styles/App.css' 
 
 interface Event {
   id: string;
@@ -31,25 +31,10 @@ function App() {
     
     // Check if user is authenticated
     const token = localStorage.getItem('authToken');
-    console.log('App: Checking authentication...');
-    console.log('App: Token from localStorage:', token);
-    console.log('App: Current URL:', window.location.href);
-    console.log('App: Current hash:', window.location.hash);
-    
-    // Store debug info in localStorage for persistence
-    localStorage.setItem('debug_auth_check', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      token: token ? 'present' : 'missing',
-      url: window.location.href,
-      hash: window.location.hash
-    }));
     
     if (token) {
-      console.log('App: Token found, setting authenticated to true...');
       setIsAuthenticated(true);
       fetchEvents();
-    } else {
-      console.log('App: No token found, user not authenticated');
     }
   }, []);
 
@@ -95,20 +80,13 @@ function App() {
 
   const handleGoogleAuth = async () => {
     try {
-      console.log('Initiating Google OAuth...');
-      console.log('API URL:', `${API_BASE_URL}/auth/google`);
-      
       const response = await fetch(`${API_BASE_URL}/auth/google`);
-      console.log('OAuth response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('OAuth data received:', data);
-      console.log('Redirecting to:', data.authUrl);
-      
       window.location.href = data.authUrl;
     } catch (error) {
       console.error('Error initiating auth:', error);
@@ -117,7 +95,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    console.log('App: Logout called, removing token and setting authenticated to false');
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setEvents([]);
@@ -125,24 +102,19 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted, inputText:', inputText);
     if (!inputText.trim()) {
-      console.log('No input text, returning');
       return;
     }
 
     setIsLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      console.log('Token found:', token ? 'Yes' : 'No');
-      console.log('Making request to:', `${API_BASE_URL}/events/process`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
       // Get user's timezone
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('User timezone:', userTimezone);
       
       const response = await fetch(`${API_BASE_URL}/events/process`, {
         method: 'POST',
@@ -159,18 +131,12 @@ function App() {
       
       clearTimeout(timeoutId);
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Response data:', data);
-        console.log('Setting pending event:', data.event);
         setPendingEvent({
           ...data.event,
           availability: data.availability
         });
-        console.log('Setting show confirmation to true');
         setShowConfirmation(true);
         setInputText('');
       } else {
@@ -180,7 +146,6 @@ function App() {
     } catch (error: any) {
       console.error('Error processing text:', error);
       if (error.name === 'AbortError') {
-        console.error('Request timed out after 30 seconds');
         alert('Request timed out. Please try again.');
       }
     } finally {
@@ -285,7 +250,6 @@ function App() {
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                onClick={() => console.log('Button clicked!')}
                 className="submit-button"
               >
                 {isLoading ? 'Processing...' : 'Create Event'}
@@ -452,7 +416,6 @@ function App() {
           </div>
         </div>
       )}
-      {console.log('Modal state - showConfirmation:', showConfirmation, 'pendingEvent:', pendingEvent)}
       </div>
   );
 }

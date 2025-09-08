@@ -1,25 +1,8 @@
 import express from 'express';
 import { google } from 'googleapis';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
-
-// Middleware to authenticate requests
-const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  try {
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    (req as any).user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
 
 // Get user's calendars
 router.get('/', authenticateToken, async (req, res) => {

@@ -6,13 +6,6 @@ const ollama = process.env.NODE_ENV === 'production' ? null : new Ollama({ host:
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 export const processTextToEvent = async (text: string, userTimezone?: string) => {
-  console.log('=== NLP Processing Started ===');
-  console.log('Input text:', text);
-  console.log('User timezone:', userTimezone || 'UTC (default)');
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('OpenAI available:', !!openai);
-  console.log('Ollama available:', !!ollama);
-  console.log('OpenAI API Key set:', !!process.env.OPENAI_API_KEY);
   
   // Get current time in user's timezone or UTC
   const now = new Date();
@@ -62,7 +55,6 @@ Now parse: "${text}"`;
   try {
     // Try OpenAI first (production), then Ollama (local), then fallback
     if (openai) {
-      console.log('Using OpenAI for NLP processing...');
       const response = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
@@ -71,7 +63,6 @@ Now parse: "${text}"`;
       });
       
       const responseText = response.choices[0]?.message?.content?.trim() || '';
-      console.log('OpenAI response received:', responseText);
       
       // Try to parse JSON from OpenAI response
       let jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -79,22 +70,18 @@ Now parse: "${text}"`;
         try {
           const eventData = JSON.parse(jsonMatch[0]);
           if (eventData.title && eventData.start && eventData.end) {
-            console.log('Successfully parsed OpenAI response:', eventData);
             return eventData;
           }
         } catch (parseError) {
-          console.log('Failed to parse OpenAI JSON, using fallback');
+          // Fall through to fallback
         }
       }
     } else if (ollama) {
-      console.log('Using Ollama for NLP processing...');
       const response = await ollama.generate({
         model: 'llama3',
         prompt: prompt,
         stream: false
       });
-
-      console.log('Ollama response received:', response.response);
       
       // Try to extract JSON from response
       const responseText = response.response.trim();
@@ -110,7 +97,6 @@ Now parse: "${text}"`;
       if (jsonMatch) {
         try {
           const eventData = JSON.parse(jsonMatch[0]);
-          console.log('Parsed event data:', eventData);
           
           // Validate required fields
           if (!eventData.title || !eventData.start || !eventData.end) {
@@ -119,29 +105,22 @@ Now parse: "${text}"`;
           
           return eventData;
         } catch (parseError) {
-          console.log('JSON parse error:', parseError);
           throw new Error('Invalid JSON format');
         }
       } else {
-        console.log('No JSON found in response, using fallback');
         throw new Error('No JSON found in response');
       }
     } else {
-      console.log('No NLP service available, using smart fallback...');
       return createSmartFallback(text, userTimezone);
     }
   } catch (error) {
     console.error('NLP processing error:', error);
     // Smart fallback - try to extract basic info from the original text
-    const fallbackData = createSmartFallback(text, userTimezone);
-    console.log('Using smart fallback data:', fallbackData);
-    return fallbackData;
+    return createSmartFallback(text, userTimezone);
   }
 };
 
 const createSmartFallback = (text: string, userTimezone?: string) => {
-  console.log('Creating smart fallback for text:', text);
-  console.log('User timezone for fallback:', userTimezone || 'UTC (default)');
   
   try {
     const now = new Date();
@@ -149,7 +128,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
     
     // Validate base dates
     if (isNaN(now.getTime()) || isNaN(tomorrow.getTime())) {
-      console.log('Invalid base dates, using current time');
       const fallbackNow = new Date();
       const fallbackTomorrow = new Date(fallbackNow.getTime() + 24 * 60 * 60 * 1000);
       return {
@@ -243,7 +221,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
   
   // Validate the base date first
   if (isNaN(eventTime.getTime())) {
-    console.log('Invalid base date, using current time');
     eventTime = new Date();
   }
   
@@ -265,11 +242,9 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
       
       // Validate hours and minutes
       if (isNaN(hours) || hours < 0 || hours > 23) {
-        console.log('Invalid hours, skipping time pattern');
         continue;
       }
       if (isNaN(minutes) || minutes < 0 || minutes > 59) {
-        console.log('Invalid minutes, skipping time pattern');
         continue;
       }
       
@@ -278,7 +253,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
       
       // Validate final hours
       if (hours < 0 || hours > 23) {
-        console.log('Invalid final hours, skipping time pattern');
         continue;
       }
       
@@ -289,7 +263,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
   
   // Validate the final event time
   if (isNaN(eventTime.getTime())) {
-    console.log('Invalid event time, using current time + 1 hour');
     eventTime = new Date();
     eventTime.setHours(eventTime.getHours() + 1, 0, 0, 0);
   }
@@ -298,7 +271,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
   
   // Validate the end time
   if (isNaN(endTime.getTime())) {
-    console.log('Invalid end time, using event time + 1 hour');
     endTime.setTime(eventTime.getTime() + 60 * 60 * 1000);
   }
   
@@ -310,7 +282,6 @@ const createSmartFallback = (text: string, userTimezone?: string) => {
       description: text
     };
     
-    console.log('Smart fallback result:', result);
     return result;
     
   } catch (error) {

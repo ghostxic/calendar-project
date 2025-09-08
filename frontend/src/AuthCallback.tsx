@@ -6,31 +6,12 @@ export default function AuthCallback() {
   const location = useLocation();
 
   useEffect(() => {
-    console.log('AuthCallback: Processing OAuth callback...');
-    console.log('AuthCallback: Current URL:', window.location.href);
-    console.log('AuthCallback: Search params:', window.location.search);
-    
-    // Set a flag to show this component was reached
-    localStorage.setItem('auth_callback_reached', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
-      search: window.location.search,
-      hash: window.location.hash
-    }));
-    
     // Parse token from React Router location
-    console.log('AuthCallback: React Router location:', location);
-    console.log('AuthCallback: Location search:', location.search);
-    console.log('AuthCallback: Location hash:', location.hash);
-    
-    // Try both React Router location.search and window.location.hash
     const searchParams = new URLSearchParams(location.search);
     const tokenFromSearch = searchParams.get('token');
     
     // Also try parsing from window.location.hash as fallback
     const windowHash = window.location.hash;
-    console.log('AuthCallback: Window hash:', windowHash);
-    
     const hashParts = windowHash.split('?');
     const queryString = hashParts[1] || '';
     const hashParams = new URLSearchParams(queryString);
@@ -39,49 +20,13 @@ export default function AuthCallback() {
     // Use whichever token we found
     const token = tokenFromSearch || tokenFromHash;
     
-    console.log('AuthCallback: Token from URL:', token);
-    console.log('AuthCallback: Token length:', token ? token.length : 0);
-    
-    // Store detailed parsing debug info
-    localStorage.setItem('token_parsing_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      reactRouterLocation: location,
-      reactRouterSearch: location.search,
-      reactRouterHash: location.hash,
-      windowHash: windowHash,
-      hashParts: hashParts,
-      queryString: queryString,
-      tokenFromSearch: tokenFromSearch,
-      tokenFromHash: tokenFromHash,
-      finalToken: token,
-      tokenFound: !!token,
-      tokenLength: token ? token.length : 0
-    }));
-    
     if (token) {
-      console.log('AuthCallback: Token found, storing in localStorage...');
       localStorage.setItem('authToken', token);
-      
-      // Verify token was stored
-      const storedToken = localStorage.getItem('authToken');
-      console.log('AuthCallback: Token stored successfully:', storedToken ? 'Yes' : 'No');
-      console.log('AuthCallback: Stored token length:', storedToken ? storedToken.length : 0);
-      
-      // Store debug info about token storage
-      localStorage.setItem('token_storage_debug', JSON.stringify({
-        timestamp: new Date().toISOString(),
-        tokenLength: token.length,
-        storedSuccessfully: !!storedToken,
-        storedTokenLength: storedToken ? storedToken.length : 0
-      }));
-      
-      console.log('AuthCallback: Navigating to home...');
       navigate('/');
     } else {
-      console.log('AuthCallback: No token found, navigating to home...');
       navigate('/');
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   return (
     <div style={{

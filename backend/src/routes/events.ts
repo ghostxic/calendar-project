@@ -2,26 +2,9 @@ import express from 'express';
 import { google } from 'googleapis';
 import { processTextToEvent } from '../services/nlpService';
 import { checkAvailability } from '../services/availabilityService';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
-
-// Middleware to authenticate requests
-const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  try {
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    (req as any).user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
 
 // Get user's events
 router.get('/', authenticateToken, async (req, res) => {
@@ -55,8 +38,6 @@ router.post('/', authenticateToken, async (req, res) => {
     const user = (req as any).user;
     const { title, start, end, description, location } = req.body;
 
-    console.log('Creating event with data:', { title, start, end, description, location });
-    console.log('User tokens:', { accessToken: user.accessToken ? 'present' : 'missing', refreshToken: user.refreshToken ? 'present' : 'missing' });
 
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
@@ -85,17 +66,13 @@ router.post('/', authenticateToken, async (req, res) => {
       },
     };
 
-    console.log('Sending event to Google Calendar:', event);
     const response = await calendar.events.insert({
       calendarId: 'primary',
       requestBody: event,
     });
-
-    console.log('Event created successfully:', response.data);
     res.json(response.data);
   } catch (error: any) {
     console.error('Error creating event:', error);
-    console.error('Error details:', error.message);
     if (error.response) {
       console.error('Google API error response:', error.response.data);
     }
@@ -110,13 +87,9 @@ router.post('/', authenticateToken, async (req, res) => {
 // Process natural language input
 router.post('/process', authenticateToken, async (req, res) => {
   try {
-    console.log('Processing text request:', req.body);
     const { text, timezone } = req.body;
-    console.log('Text to process:', text);
-    console.log('User timezone:', timezone || 'UTC (default)');
     
     const eventData = await processTextToEvent(text, timezone);
-    console.log('Event data processed:', eventData);
     
     // Check availability
     const user = (req as any).user;
@@ -132,14 +105,12 @@ router.post('/process', authenticateToken, async (req, res) => {
     });
     
     const availability = await checkAvailability(oauth2Client, eventData.start, eventData.end);
-    console.log('Availability check:', availability);
     
     const response = { 
       event: eventData, 
       confidence: 0.8,
       availability: availability
     };
-    console.log('Sending response:', response);
     res.json(response);
   } catch (error: any) {
     console.error('Error processing text:', error);
